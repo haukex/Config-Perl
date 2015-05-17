@@ -23,8 +23,8 @@ instead of "make".
 
 DEPENDENCIES
 
-Requirements: Perl v5.8 or higher (a more current version is strongly
-recommended) and several of its core modules; users of Perl before v5.10
+Requirements: Perl v5.6 or higher (a more current version is strongly
+recommended) and several of its core modules; users of older Perls
 may need to upgrade some core modules.
 The CPAN module "PPI" is also required.
 
