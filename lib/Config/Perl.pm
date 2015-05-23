@@ -108,8 +108,13 @@ arrayrefs and hashrefs constructed via C<[]> and C<{}> resp.
 
 =item *
 
-assignments (except the return value of assignments is not yet implemented),
-declarations (only C<our>; not C<my>, C<local> or C<state>)
+declarations - only C<our>, also C<my> on the outermost level (document)
+where it is treated exactly like C<our>;
+not supported are lexical C<my> inside blocks, C<local> or C<state>
+
+=item *
+
+assignments (except the return value of assignments is not yet implemented)
 
 =item *
 
@@ -252,7 +257,7 @@ sub _handle_block {  ## no critic (ProhibitExcessComplexity)
 			croak "Unsupported declaration type \"".$el->type."\""
 				unless $el->type eq 'our' || $el->type eq 'my';
 			croak "Lexical variables (\"my\") not supported" # I'd like to support "my" soon
-				unless $el->type eq 'our';
+				unless $el->type eq 'our' || ($el->type eq 'my' && $param{outer});
 			# Note: Don't use $el->symbols, as that omits undefs on LHS!
 			$self->_handle_assign($el,$sc[1],$sc[3]);
 			$is_assign=1;

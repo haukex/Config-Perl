@@ -81,6 +81,7 @@ ENDCODE
 		}
 		else { croak "unknown expected symbol '$_'" }
 	}
+	delete $$exp_syms{$_} for @{$$opts{del_syms}||[]};
 	
 	my $cp = Config::Perl->new;
 	my $got_out = $cp->parse_or_undef(\$str);

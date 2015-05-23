@@ -50,8 +50,8 @@ like exception { $cp->parse_or_die(\q{"$."}) },
 
 like exception { $cp->parse_or_die(\q{local $x = "abc";}) },
 	qr/\bUnsupported declaration type "local"/i, 'local decl unsupported';
-like exception { $cp->parse_or_die(\q{my $x = "abc";}) },
-	qr/\bLexical variables .*not supported\b/, 'my decl unsupported';
+like exception { $cp->parse_or_die(\q{ do { my $x = "abc"; } }) },
+	qr/\bLexical variables .*not supported\b/, 'my decl in block unsupported';
 
 like exception { Config::Perl->new->parse_or_die(\q{ @foo[3,4] }) },
 	qr/\bExpected subscript to contain a single value\b/i, 'subscript multi value';

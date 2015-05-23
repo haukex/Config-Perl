@@ -30,9 +30,8 @@ test_ppconf q{ $foo="bar"; }, { '$foo'=>"bar" }, 'basic test';
 test_ppconf q{ $foo="bar" }, { '$foo'=>"bar" }, 'no semicolon';
 test_ppconf q{ our $foo="bar"; }, { '$foo'=>"bar" }, '"our"';
 test_ppconf q{ our $foo=123; }, { '$foo'=>123 }, 'number';
-TODO: { todo_skip "my not yet implemented", 1*2;
-	test_ppconf q{ my $foo=123; }, { '$foo'=>123 }, '"my"';
-}
+test_ppconf q{ my $foo=123; }, { '$foo'=>123 }, '"my" in outermost block',
+	{del_syms=>['$foo']};
 test_ppconf q{}, {}, 'empty doc';
 test_ppconf q{ "foo";; }, { '_'=>["foo"] }, 'two semicolons';
 
