@@ -3,7 +3,7 @@ package Data::Undump::PPI;
 use warnings;
 use strict;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 Name
 
@@ -60,8 +60,9 @@ This module is part of the L<Config::Perl|Config::Perl> distribution,
 but was named seperately in an attempt to make its purpose more clear
 and its name a little easier to remember.
 
-This document describes version 0.01 of the module.
-B<This is a development version.>
+This document describes version 0.02 of the module.
+Although this module is well-tested and working, it still lacks some
+features to make it I<really> useful (see L<Config::Perl|Config::Perl>).
 Contributions are welcome!
 
 =head1 Author, Copyright, and License

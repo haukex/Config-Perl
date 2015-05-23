@@ -3,7 +3,7 @@ package Config::Perl;
 use warnings;
 use strict;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 Name
 
@@ -56,8 +56,9 @@ or adding an error message that the particular feature is unsupported.
 However, the result of using this module to parse something that is not valid Perl is undefined;
 it may cause an error, or may fail in some other silent way.
 
-This document describes version 0.01 of the module.
-B<This is a development version.>
+This document describes version 0.02 of the module.
+Although this module is well-tested and working, it still lacks some
+features to make it I<really> useful (see list below).
 Contributions are welcome!
 
 =head2 Interface
