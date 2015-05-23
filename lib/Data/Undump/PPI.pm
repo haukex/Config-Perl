@@ -15,7 +15,7 @@ Data::Undump::PPI - Perl extension for limited undumping of data structures via 
 Remember to test this by copy/pasting to/from 91_author_pod.t
 
  use Data::Dumper;
- use Data::Undump::PPI;
+ use Data::Undump::PPI;             # exports the "Undump()" function
  
  my @input = ( {foo=>"bar"}, ["Hello","World"], "undumping!" );
  my $str = Dumper(@input);          # dump the data structure to a string
@@ -42,19 +42,27 @@ If the string doesn't look like the output of one of the dumper modules,
 the output of L<Config::Perl|Config::Perl>'s C<parse_or_die> will be passed through.
 C<Undump> will C<die> if it encounters problems.
 
-If you're using L<Data::Dumper|Data::Dumper>, note that its C<Terse>
-option may cause C<Dumper> to generate invalid Perl strings if you pass it
-more than one value.
-
 Because at the moment L<Config::Perl|Config::Perl> has only very limited support
 for references, self-referential data structures will most likely not work
 (support may be added in a later release of L<Config::Perl|Config::Perl>).
 For now, a possible workaround may be L<Data::Dumper|Data::Dumper>'s C<Deepcopy> option,
 if the loss of references and copying of data is acceptable for your application.
 
+If you're using L<Data::Dump|Data::Dump>, note that some of the code it generates
+is currently unsupported by L<Config::Perl|Config::Perl>, such as the range operator C<..>.
+Because of this, you may be better off using L<Data::Dumper|Data::Dumper> for now.
+
+If you're using L<Data::Dumper|Data::Dumper>, note that its C<Terse>
+option may cause C<Dumper> to generate invalid Perl strings if you pass it
+more than one value.
+
 This module is part of the L<Config::Perl|Config::Perl> distribution,
 but was named seperately in an attempt to make its purpose more clear
 and its name a little easier to remember.
+
+This document describes version 0.01 of the module.
+B<This is a development version.>
+Contributions are welcome!
 
 =head1 Author, Copyright, and License
 

@@ -53,8 +53,11 @@ that the feature is not supported, instead of silently giving a wrong result.
 If the output of a parse is different from how Perl would evaluate the same string,
 then that is a bug in this module that should be fixed by correcting the output
 or adding an error message that the particular feature is unsupported.
+However, the result of using this module to parse something that is not valid Perl is undefined;
+it may cause an error, or may fail in some other silent way.
 
 This document describes version 0.01 of the module.
+B<This is a development version.>
 Contributions are welcome!
 
 =head2 Interface
