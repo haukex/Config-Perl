@@ -26,6 +26,7 @@ our @EXPORT = qw/ $AUTHOR_TESTS $DEVEL_COVER warns test_ppconf /;  ## no critic 
 
 our $AUTHOR_TESTS = ! ! $ENV{CONFIG_PERL_AUTHOR_TESTS};
 our $DEVEL_COVER = exists $INC{'Devel/Cover.pm'};
+our $CONFIG_PERL_DEBUG = ! ! $ENV{CONFIG_PERL_DEBUG};
 
 sub import {  ## no critic (RequireArgUnpacking)
 	warnings->import(FATAL=>'all') if $AUTHOR_TESTS;
@@ -83,7 +84,7 @@ ENDCODE
 	}
 	delete $$exp_syms{$_} for @{$$opts{del_syms}||[]};
 	
-	my $cp = Config::Perl->new;
+	my $cp = Config::Perl->new(debug=>$CONFIG_PERL_DEBUG);
 	my $got_out = $cp->parse_or_undef(\$str);
 	if (!defined $got_out) {
 		fail "$testname (return value)";
