@@ -65,7 +65,7 @@ Contributions are welcome!
 =head2 Interface
 
 This module has a simple OO interface. A new parser is created
-with C<< Config::Perl->new >>, which currently does not take any arguments,
+with C<< Config::Perl->new >>
 and documents are parsed with either the method C<parse_or_die> or C<parse_or_undef>.
 
  my $parser = Config::Perl->new;
@@ -98,6 +98,8 @@ Note that documents are currently always parsed in list context.
 For example, this means that a document like "C<@foo = ("a","b","c"); @foo>"
 will return the array's elements (C<"a","b","c">) instead of the item count (C<3>).
 This also means that the special hash element "C<_>" will currently always be an arrayref.
+
+C<< Config::Perl->new(debug=>1) >> turns on debugging.
 
 =head2 What is currently supported
 
@@ -198,12 +200,14 @@ use warnings::register;
 use PPI ();
 use PPI::Dumper ();
 
-our $DEBUG = 0; #TODO: Make $DEBUG user-settable
+our $DEBUG = 0; # global debug setting
 
+my %KNOWN_ARGS_NEW = map {$_=>1} qw/ debug /;
 sub new {
-	my $class = shift;
-	croak "new currently takes no arguments" if @_;
+	my ($class,%args) = @_;
+	$KNOWN_ARGS_NEW{$_} or croak "unknown argument $_" for keys %args;
 	my $self = {
+		debug => $args{debug} || $DEBUG,
 		errstr => undef,
 		ctx => undef, # Note: valid values for ctx currently "list", "scalar", "scalar-void"
 		out => undef,
@@ -222,7 +226,7 @@ sub _errormsg {
 }
 sub _debug {
 	my ($self,$msg) = @_;
-	return unless $DEBUG;
+	return unless $self->{debug};
 	my $line = $self->{ptr} ? $self->{ptr}->line_number : '?';
 	my $col = $self->{ptr} ? $self->{ptr}->column_number : '?';
 	return print STDERR "[L$line C$col] $msg\n";
@@ -268,7 +272,7 @@ sub _handle_block {  ## no critic (ProhibitExcessComplexity)
 			{ $block = $block->snext_sibling }
 		return $self->_errormsg("expected Block") unless $block->isa('PPI::Structure::Block');
 	}
-	$DEBUG and $self->_debug("beginning to parse a block with ".$block->schildren." schildren");
+	$self->_debug("beginning to parse a block with ".$block->schildren." schildren");
 	my $block_rv = sub {};
 	STATEMENT: for my $stmt ($block->schildren) {
 		# last statement in block gets its context, otherwise void context
@@ -280,7 +284,7 @@ sub _handle_block {  ## no critic (ProhibitExcessComplexity)
 		}
 		local $self->{ptr} = $stmt;
 		if (ref( my $rv1 = $self->_handle_assignment( $param{outer}?(outer=>1):() ) )) {
-			$DEBUG and $self->_debug("parsed an assignment in a block");
+			$self->_debug("parsed an assignment in a block");
 			if ($self->{ptr} && (!$self->{ptr}->isa('PPI::Token::Structure') || !$self->{ptr}->content eq ';' || $self->{ptr}->snext_sibling))
 				{ return $self->_errormsg("expected Semicolon after assignment") }
 			$block_rv = $rv1 unless $self->{ctx} eq 'scalar-void';
@@ -291,7 +295,7 @@ sub _handle_block {  ## no critic (ProhibitExcessComplexity)
 			$rv2 = $self->_errormsg("expected Semicolon after value")
 				if ref($rv2) && $self->{ptr} && (!$self->{ptr}->isa('PPI::Token::Structure') || !$self->{ptr}->content eq ';' || $self->{ptr}->snext_sibling);
 			if (ref $rv2) {
-				$DEBUG and $self->_debug("parsed a plain value in a block");
+				$self->_debug("parsed a plain value in a block");
 				if ($self->{ctx} eq 'scalar-void')
 					{ warnings::warnif("value in void context") if $rv2->() }
 				else
@@ -326,14 +330,14 @@ sub _handle_assignment {  ## no critic (ProhibitExcessComplexity)
 			unless $as->type eq 'our' || $as->type eq 'my';
 		return $self->_errormsg("Lexical variables (\"my\") not supported") # I'd like to support "my" soon
 			unless $as->type eq 'our' || ($as->type eq 'my' && $param{outer});
-		$DEBUG and $self->_debug("parsing a variable declaration");
+		$self->_debug("parsing a variable declaration");
 		$self->{ptr} = $as->schild(1);
 	}
 	else {
 		return $self->_errormsg("expected Assignment")
 			if !$as || $as->class ne 'PPI::Statement'
 			|| $as->schildren<3 || $as->schildren>6;
-		$DEBUG and $self->_debug("parsing an assignment");
+		$self->_debug("parsing an assignment");
 		$self->{ptr} = $as->schild(0);
 	}
 	
@@ -342,7 +346,7 @@ sub _handle_assignment {  ## no critic (ProhibitExcessComplexity)
 		my $sym = $self->_handle_symbol();
 		return $sym unless ref $sym;
 		$lhs_scalar = $sym->{atype} eq '$';
-		$DEBUG and $self->_debug("assign single LHS \"$$sym{name}\"/$$sym{atype}");
+		$self->_debug("assign single LHS \"$$sym{name}\"/$$sym{atype}");
 		@lhs = ($sym);
 	}
 	elsif ($self->{ptr}->isa('PPI::Structure::List')) {
@@ -363,7 +367,7 @@ sub _handle_assignment {  ## no critic (ProhibitExcessComplexity)
 		my $rv = $self->_handle_value();
 		return $rv unless ref $rv;
 		$rv->() };
-	$DEBUG and $self->_debug("assignment: LHS ".scalar(@lhs)." values, RHS ".scalar(@rhs)." values");
+	$self->_debug("assignment: LHS ".scalar(@lhs)." values, RHS ".scalar(@rhs)." values");
 	$last_ptr = $self->{ptr};
 	
    
@@ -411,7 +415,7 @@ sub _handle_list {  ## no critic (ProhibitExcessComplexity)
 	confess "Internal error: _handle_list called in list context" if wantarray;
 	croak "can only handle a plain list on LHS"
 		if $param{is_lhs} && !$outerlist->isa('PPI::Structure::List');
-	$DEBUG and $self->_debug("parsing a list ".($param{is_lhs}?"(LHS)":"(Not LHS)"));
+	$self->_debug("parsing a list ".($param{is_lhs}?"(LHS)":"(Not LHS)"));
 	if (!$outerlist->schildren) { # empty list
 		#TODO: Test empty list
 		$self->{ptr} = $outerlist->snext_sibling;
@@ -434,11 +438,11 @@ sub _handle_list {  ## no critic (ProhibitExcessComplexity)
 				if ($self->{ptr}->isa('PPI::Token::Symbol')) {
 					my $sym = $self->_handle_symbol();
 					return $sym unless ref $sym;
-					$DEBUG and $self->_debug("LHS List symbol: \"$$sym{name}\"/$$sym{atype}");
+					$self->_debug("LHS List symbol: \"$$sym{name}\"/$$sym{atype}");
 					push @thelist, $sym;
 				}
 				elsif (!$fat_comma_next && $self->{ptr}->isa('PPI::Token::Word') && $self->{ptr}->literal eq 'undef') {
-					$DEBUG and $self->_debug("LHS List undef");
+					$self->_debug("LHS List undef");
 					push @thelist, undef;
 					$self->{ptr} = $self->{ptr}->snext_sibling;
 				}
@@ -449,7 +453,7 @@ sub _handle_list {  ## no critic (ProhibitExcessComplexity)
 				# handle fat comma autoquoting words
 				if ($fat_comma_next && $self->{ptr}->isa('PPI::Token::Word') && $self->{ptr}->literal=~/^\w+$/ ) {
 					my $word = $self->{ptr}->literal;
-					$DEBUG and $self->_debug("list fat comma autoquoted \"$word\"");
+					$self->_debug("list fat comma autoquoted \"$word\"");
 					push @thelist, $word;
 					$self->{ptr} = $self->{ptr}->snext_sibling;
 				}
@@ -490,7 +494,7 @@ sub _handle_symbol {  ## no critic (ProhibitExcessComplexity)
 	return $self->_errormsg("expected Symbol")
 		unless $sym && $sym->isa('PPI::Token::Symbol');
 	my %rsym = ( name => $sym->symbol, atype => $sym->raw_type );
-	$DEBUG and $self->_debug("parsing a symbol \"".$sym->symbol.'"');
+	$self->_debug("parsing a symbol \"".$sym->symbol.'"');
 	my $peek_next = $sym->snext_sibling;
 	if ($peek_next && $peek_next->isa('PPI::Structure::Subscript')) {
 		# fetch subscript
@@ -511,7 +515,7 @@ sub _handle_symbol {  ## no critic (ProhibitExcessComplexity)
 			return $v unless ref $v;
 			$sub = $v->();
 		}
-		$DEBUG and $self->_debug("symbol has subscript, evaluated to \"$sub\"");
+		$self->_debug("symbol has subscript, evaluated to \"$sub\"");
 		# fetch the variable reference with subscript
 		if ($sym->raw_type eq '$' && $sym->symbol_type eq '@' && $peek_next->braces eq '[]') {
 			$rsym{ref} = \( $self->{out}{$sym->symbol}[$sub] );
@@ -541,18 +545,18 @@ sub _handle_value {  ## no critic (ProhibitExcessComplexity)
 	return $self->_errormsg("expected Value") unless $val;
 	if ($val->isa('PPI::Token::Number')) {  ## no critic (ProhibitCascadingIfElse)
 		my $num = 0+$val->literal;
-		$DEBUG and $self->_debug("consuming number $num as value");
+		$self->_debug("consuming number $num as value");
 		$self->{ptr} = $val->snext_sibling;
 		return sub { return $num }
 	}
 	elsif ($val->isa('PPI::Token::Word') && $val->literal eq 'undef') {
-		$DEBUG and $self->_debug("consuming undef as value");
+		$self->_debug("consuming undef as value");
 		$self->{ptr} = $val->snext_sibling;
 		return sub { return undef }  ## no critic (ProhibitExplicitReturnUndef)
 	}
 	elsif ($val->isa('PPI::Token::Word') && $val->literal=~/^-\w+$/) {
 		my $word = $val->literal;
-		$DEBUG and $self->_debug("consuming dashed bareword \"$word\" as value");
+		$self->_debug("consuming dashed bareword \"$word\" as value");
 		$self->{ptr} = $val->snext_sibling;
 		return sub { return $word }
 	}
@@ -576,14 +580,14 @@ sub _handle_value {  ## no critic (ProhibitExcessComplexity)
 		}
 		else
 			{ confess "unknown PPI::Token::Quote subclass ".$val->class }  # uncoverable statement
-		$DEBUG and $self->_debug("consuming quoted string \"$str\" as value");
+		$self->_debug("consuming quoted string \"$str\" as value");
 		$self->{ptr} = $val->snext_sibling;
 		return sub { return $str };
 	}
 	elsif ($val->isa('PPI::Token::Symbol')) {
 		my $sym = $self->_handle_symbol();
 		return $sym unless ref $sym;
-		$DEBUG and $self->_debug("consuming and accessing symbol \"$$sym{name}\"/$$sym{atype} as value (ctx: ".$self->{ctx}.")");
+		$self->_debug("consuming and accessing symbol \"$$sym{name}\"/$$sym{atype} as value (ctx: ".$self->{ctx}.")");
 		if ($sym->{atype} eq '$') {
 			return sub { return ${ $sym->{ref} } }
 		}
@@ -605,7 +609,7 @@ sub _handle_value {  ## no critic (ProhibitExcessComplexity)
 		local $self->{ctx} = 'list';
 		my $l = $self->_handle_list();
 		return $l unless ref $l;
-		$DEBUG and $self->_debug("consuming arrayref/hashref constructor as value");
+		$self->_debug("consuming arrayref/hashref constructor as value");
 		if ($val->braces eq '[]')
 			{ return sub { return [ @$l ] } }
 		elsif ($val->braces eq '{}')
@@ -614,19 +618,19 @@ sub _handle_value {  ## no critic (ProhibitExcessComplexity)
 	}
 	elsif ($val->isa('PPI::Token::Word') && $val->literal eq 'do'
 		&& $val->snext_sibling && $val->snext_sibling->isa('PPI::Structure::Block')) {
-		$DEBUG and $self->_debug("attempting to consume block as value");
+		$self->_debug("attempting to consume block as value");
 		return $self->_handle_block();
 	}
 	elsif ($val->isa('PPI::Structure::List')) {
 		my $l = $self->_handle_list();
 		return $l unless ref $l;
-		$DEBUG and $self->_debug("consuming list as value");
+		$self->_debug("consuming list as value");
 		return sub { wantarray or confess "expected to be called in list context";
 			return @$l }
 	}
 	elsif ($val->isa('PPI::Token::QuoteLike::Words')) { # qw//
 		my @l = $val->literal; # returns a list of words
-		$DEBUG and $self->_debug("consuming qw/@l/ as value");
+		$self->_debug("consuming qw/@l/ as value");
 		$self->{ptr} = $val->snext_sibling;
 		return $self->{ctx}=~/^scalar\b/
 			? sub { return $l[-1] }

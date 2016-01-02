@@ -27,8 +27,8 @@ my $cp = Config::Perl->new;
 
 # Error Tests
 
-like exception { Config::Perl->new('foo') },
-	qr/\btakes no arguments\b/, 'new takes no args';
+like exception { Config::Perl->new('foo','bar') },
+	qr/\bunknown argument\b/, 'bad args to new';
 
 like exception { $cp->parse_or_die(\' substr("foo" ') },
 	qr/\bdocument incomplete\b/i, 'doc incomplete';
