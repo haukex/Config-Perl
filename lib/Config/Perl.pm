@@ -248,7 +248,7 @@ sub parse_or_die {
 	my $errmsg = PPI::Document->errstr||"Unknown error";
 	$doc or croak "Parse failed: $errmsg";
 	$doc->complete or croak "Document incomplete (missing final semicolon?)";
-	$self->{ctx} = 'list';
+	$self->{ctx} = 'list'; # we're documented to currently always parse in list context
 	$self->{out} = {};
 	$self->{ptr} = $doc;
 	my $rv = $self->_handle_block(outer=>1);
@@ -371,7 +371,6 @@ sub _handle_assignment {  ## no critic (ProhibitExcessComplexity)
 	$last_ptr = $self->{ptr};
 	
    
-	#TODO: test case for RHS containing an empty list; make sure it's skipped
 	for my $l (@lhs) {
 		if (!defined($l))  ## no critic (ProhibitCascadingIfElse)
 			{ shift @rhs }
@@ -426,10 +425,10 @@ sub _handle_list {  ## no critic (ProhibitExcessComplexity)
 	croak "Unsupported list\n"._errmsg($outerlist)
 		unless $outerlist->schildren==1 && ($act_list->isa('PPI::Statement::Expression') || $act_list->class eq 'PPI::Statement');
 	my @thelist;
-	{ # block for local ptr and ctx
+	my $last_value; # for scalar context and !is_lhs
+	{ # block for local ptr
 	my $expect = 'item';
 	local $self->{ptr} = $act_list->schild(0);
-	local $self->{ctx} = 'list';
 	while ($self->{ptr}) {
 		if ($expect eq 'item') {
 			my $peek_next = $self->{ptr}->snext_sibling;
@@ -455,12 +454,14 @@ sub _handle_list {  ## no critic (ProhibitExcessComplexity)
 					my $word = $self->{ptr}->literal;
 					$self->_debug("list fat comma autoquoted \"$word\"");
 					push @thelist, $word;
+					$last_value = $word;
 					$self->{ptr} = $self->{ptr}->snext_sibling;
 				}
 				else {
 					my $val = $self->_handle_value();
 					return $val unless ref $val;
 					push @thelist, $val->();
+					$last_value = $val->() if $self->{ctx}=~/^scalar\b/;
 				}
 			}
 			$expect = 'separator';
@@ -474,9 +475,11 @@ sub _handle_list {  ## no critic (ProhibitExcessComplexity)
 		}
 		else { confess "really shouldn't happen, bad state $expect" }  # uncoverable statement
 	}
-	} # end block for local ptr and ctx
+	} # end block for local ptr
 	$self->{ptr} = $outerlist->snext_sibling;
-	return [$thelist[-1]] if !$param{is_lhs} && $self->{ctx}=~/^scalar\b/;
+	# don't use $thelist[-1] here because that flattens all lists - consider: my $x = (3,());
+	# in scalar ctx the comma op always throws away its LHS, so $x should be undef
+	return [$last_value] if !$param{is_lhs} && $self->{ctx}=~/^scalar\b/;
 	return \@thelist;
 }
 
@@ -625,8 +628,10 @@ sub _handle_value {  ## no critic (ProhibitExcessComplexity)
 		my $l = $self->_handle_list();
 		return $l unless ref $l;
 		$self->_debug("consuming list as value");
-		return sub { wantarray or confess "expected to be called in list context";
-			return @$l }
+		return $self->{ctx}=~/^scalar\b/
+			? sub { return $l->[-1] } # note in this case we should only be getting one value from _handle_list anyway
+			: sub { wantarray or confess "expected to be called in list context";
+				return @$l }
 	}
 	elsif ($val->isa('PPI::Token::QuoteLike::Words')) { # qw//
 		my @l = $val->literal; # returns a list of words

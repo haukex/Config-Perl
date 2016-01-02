@@ -61,6 +61,8 @@ test_ppconf q{ LBL: do { "foo" } }, { _=>["foo"] }, 'do block w/ label';
 
 test_ppconf q{ our $test = ("Hello","World"); },
 	{ '$test' => 'World' }, 'list in scalar';
+test_ppconf q{ our $test = ("Hello","World",()); },
+	{ '$test' => undef }, 'list to scalar w/ empty list';
 test_ppconf q{ our $test = qw/ foo bar quz /; },
 	{ '$test' => 'quz' }, 'qw in scalar';
 
@@ -180,6 +182,10 @@ test_ppconf q{ %x=qw/a b c d/; $y=%x }, { '%x'=>\%thash1, '$y'=>scalar %thash1 }
 test_ppconf q{ @x=qw/a b/; @y=@x }, { '@x'=>['a','b'], '@y'=>['a','b'] }, 'assign array to array';
 test_ppconf q{ @y=('x',('d','e'),'y'); },
 	{ '@y'=>['x','d','e','y'] }, 'array assign, list in rhs list';
+test_ppconf q{ @y=('x',(),'y'); },
+	{ '@y'=>['x','y'] }, 'array assign, empty list in rhs list';
+test_ppconf q{ @y=((),'x',('r','u'),(),'y',()); },
+	{ '@y'=>['x','r','u','y'] }, 'array assign, empty lists in rhs list';
 test_ppconf q{ @x=qw/a b/; @y=('x',@x,'y'); },
 	{ '@x'=>['a','b'], '@y'=>['x','a','b','y'] }, 'array assign, array in rhs list';
 test_ppconf q{ %x=(a=>"b"); @y=('x',%x,'y'); },
@@ -193,6 +199,9 @@ test_ppconf q{ %x=qw/a b/; %y=(c=>'d',%x,a=>'x') },
 
 test_ppconf q{ @foo = ("a","b","c"); @foo },
 	{ '@foo' => ["a","b","c"], _=>["a","b","c"] }, 'array as last elem';
+
+test_ppconf q{ @y=('x','y','z'); $x=('a',@y); },
+	{ '@y'=>['x','y','z'], '$x'=>3 }, 'list assign, scalar ctx passthru';
 
 test_ppconf q{ @x=qw/a/; @x=qw/b c/; }, { '@x'=>['b','c'] }, 'assign to existing array';
 test_ppconf q{ @x=qw/a b/; @x=qw/c/; }, { '@x'=>['c'] }, 'assign to existing array smaller';
