@@ -370,7 +370,6 @@ sub _handle_assignment {  ## no critic (ProhibitExcessComplexity)
 	$self->_debug("assignment: LHS ".scalar(@lhs)." values, RHS ".scalar(@rhs)." values");
 	$last_ptr = $self->{ptr};
 	
-   
 	for my $l (@lhs) {
 		if (!defined($l))  ## no critic (ProhibitCascadingIfElse)
 			{ shift @rhs }
@@ -416,7 +415,6 @@ sub _handle_list {  ## no critic (ProhibitExcessComplexity)
 		if $param{is_lhs} && !$outerlist->isa('PPI::Structure::List');
 	$self->_debug("parsing a list ".($param{is_lhs}?"(LHS)":"(Not LHS)"));
 	if (!$outerlist->schildren) { # empty list
-		#TODO: Test empty list
 		$self->{ptr} = $outerlist->snext_sibling;
 		return [];
 	}

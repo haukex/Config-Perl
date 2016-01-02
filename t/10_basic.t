@@ -202,6 +202,8 @@ test_ppconf q{ @foo = ("a","b","c"); @foo },
 
 test_ppconf q{ @y=('x','y','z'); $x=('a',@y); },
 	{ '@y'=>['x','y','z'], '$x'=>3 }, 'list assign, scalar ctx passthru';
+test_ppconf q{ $x=(); @y=(); %z=(); $a=[]; $b={}; },
+	{ '$x'=>undef, '@y'=>[], '%z'=>{}, '$a'=>[], '$b'=>{} }, 'empty lists assign';
 
 test_ppconf q{ @x=qw/a/; @x=qw/b c/; }, { '@x'=>['b','c'] }, 'assign to existing array';
 test_ppconf q{ @x=qw/a b/; @x=qw/c/; }, { '@x'=>['c'] }, 'assign to existing array smaller';
