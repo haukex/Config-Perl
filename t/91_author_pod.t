@@ -57,7 +57,8 @@ is_deeply $data,
 
 # Test the Data::Undump::PPI POD Synopsis (copy & paste to/from there)
  use Data::Dumper;
- use Data::Undump::PPI;
+ use Data::Undump::PPI;             # exports the "Undump()" function
+ $Data::Dumper::Purity=1;           # should always be turned on for Undump
  
  my @input = ( {foo=>"bar"}, ["Hello","World"], "undumping!" );
  my $str = Dumper(@input);          # dump the data structure to a string

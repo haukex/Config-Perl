@@ -16,6 +16,7 @@ Remember to test this by copy/pasting to/from 91_author_pod.t
 
  use Data::Dumper;
  use Data::Undump::PPI;             # exports the "Undump()" function
+ $Data::Dumper::Purity=1;           # should always be turned on for Undump
  
  my @input = ( {foo=>"bar"}, ["Hello","World"], "undumping!" );
  my $str = Dumper(@input);          # dump the data structure to a string
@@ -47,6 +48,9 @@ for references, self-referential data structures will most likely not work
 (support may be added in a later release of L<Config::Perl|Config::Perl>).
 For now, a possible workaround may be L<Data::Dumper|Data::Dumper>'s C<Deepcopy> option,
 if the loss of references and copying of data is acceptable for your application.
+Note that you should always turn on L<Data::Dumper|Data::Dumper>'s C<Purity> option,
+as otherwise L<Data::Dumper|Data::Dumper> may produce code that may not evaluate
+back to the same data structure, even though it's valid, parseable Perl!
 
 If you're using L<Data::Dump|Data::Dump>, note that some of the code it generates
 is currently unsupported by L<Config::Perl|Config::Perl>, such as the range operator C<..>.

@@ -336,8 +336,8 @@ sub _handle_assignment {  ## no critic (ProhibitExcessComplexity)
 	else {
 		return $self->_errormsg("expected Assignment")
 			if !$as || $as->class ne 'PPI::Statement'
-			|| $as->schildren<3 || $as->schildren>6;
-		$self->_debug("parsing an assignment");
+			|| $as->schildren<3; # with subscripts, there's no upper limit on schildren
+		$self->_debug("parsing an assignment (schildren: ".$as->schildren.")");
 		$self->{ptr} = $as->schild(0);
 	}
 	
@@ -481,12 +481,11 @@ sub _handle_list {  ## no critic (ProhibitExcessComplexity)
 	return \@thelist;
 }
 
-# Handles Symbols and their Subscripts
+# Handles Symbols, subscripts and (implicit) arrow operator derefs
 # Returns a hashref representing the symbol:
-#   name = the name of the symbol
+#   name = the name of the symbol (TODO Later: Currently only used for debugging messages, remove?)
 #   atype = the raw_type of the symbol
 #   ref = reference to our storage location
-#   sub = textual representation of the subscript (optional)
 # On Error returns a string, pointer not advanced
 # On Success advances pointer over the symbol and possible subscript
 sub _handle_symbol {  ## no critic (ProhibitExcessComplexity)
@@ -496,44 +495,85 @@ sub _handle_symbol {  ## no critic (ProhibitExcessComplexity)
 		unless $sym && $sym->isa('PPI::Token::Symbol');
 	my %rsym = ( name => $sym->symbol, atype => $sym->raw_type );
 	$self->_debug("parsing a symbol \"".$sym->symbol.'"');
-	my $peek_next = $sym->snext_sibling;
-	if ($peek_next && $peek_next->isa('PPI::Structure::Subscript')) {
-		# fetch subscript
-		my @sub_ch = $peek_next->schildren;
-		return $self->_errormsg("expected subscript to contain a single expression")
-			unless @sub_ch==1 && $sub_ch[0]->isa('PPI::Statement::Expression');
-		my @subs = $sub_ch[0]->schildren;
-		return $self->_errormsg("expected subscript to contain a single value")
-			unless @subs==1;
-		my $sub;
-		# autoquoting in hash braces
-		if ($peek_next->braces eq '{}' && $subs[0]->isa('PPI::Token::Word'))
-			{ $sub = $subs[0]->literal }
-		else {
-			local $self->{ctx} = 'scalar';
-			local $self->{ptr} = $subs[0];
-			my $v = $self->_handle_value();
-			return $v unless ref $v;
-			$sub = $v->();
-		}
-		$self->_debug("symbol has subscript, evaluated to \"$sub\"");
+	my $temp_ptr = $sym->snext_sibling;
+	if ($temp_ptr && $temp_ptr->isa('PPI::Structure::Subscript')) {
+		my $ss = $self->_handle_subscript($temp_ptr);
+		return $ss unless ref $ss;
 		# fetch the variable reference with subscript
-		if ($sym->raw_type eq '$' && $sym->symbol_type eq '@' && $peek_next->braces eq '[]') {
-			$rsym{ref} = \( $self->{out}{$sym->symbol}[$sub] );
-			$rsym{sub} = "[$sub]";
+		if ($sym->raw_type eq '$' && $sym->symbol_type eq '@' && $$ss{braces} eq '[]') {
+			$rsym{ref} = \( $self->{out}{$sym->symbol}[$$ss{sub}] );
 		}
-		elsif ($sym->raw_type eq '$' && $sym->symbol_type eq '%' && $peek_next->braces eq '{}') {
-			$rsym{ref} = \( $self->{out}{$sym->symbol}{$sub} );
-			$rsym{sub} = "{$sub}";
+		elsif ($sym->raw_type eq '$' && $sym->symbol_type eq '%' && $$ss{braces} eq '{}') {
+			$rsym{ref} = \( $self->{out}{$sym->symbol}{$$ss{sub}} );
 		}
-		else { return $self->_errormsg("can't handle this subscript on this variable: "._errmsg($sym)._errmsg($peek_next)) }
-		$self->{ptr} = $peek_next->snext_sibling;
+		else { return $self->_errormsg("can't handle this subscript on this variable: "._errmsg($sym)._errmsg($temp_ptr)) }
+		$self->_debug("handled symbol with subscript");
+		$temp_ptr = $temp_ptr->snext_sibling;
 	}
 	else {
+		$self->_debug("handled symbol without subscript");
 		$rsym{ref} = \( $self->{out}{$sym->symbol} );
-		$self->{ptr} = $sym->snext_sibling;
+		$temp_ptr = $sym->snext_sibling;
 	}
+	while (1) {
+		if ($temp_ptr && $temp_ptr->isa('PPI::Token::Operator') && $temp_ptr->content eq '->') {
+			$self->_debug("skipping arrow operator between derefs");
+			$temp_ptr = $temp_ptr->snext_sibling;
+			next; # ignore arrows
+		}
+		elsif ($temp_ptr && $temp_ptr->isa('PPI::Structure::Subscript')) {
+			my $ss = $self->_handle_subscript($temp_ptr);
+			return $ss unless ref $ss;
+			if ($$ss{braces} eq '[]')  {
+				$self->_debug("deref [$$ss{sub}]");
+				return $self->_errormsg("Not an array reference") unless ref(${$rsym{ref}}) eq 'ARRAY';
+				$rsym{ref} = \( ${ $rsym{ref} }->[$$ss{sub}] );
+			}
+			elsif ($$ss{braces} eq '{}') {
+				$self->_debug("deref {$$ss{sub}}");
+				return $self->_errormsg("Not a hash reference") unless ref(${$rsym{ref}}) eq 'HASH';
+				$rsym{ref} = \( ${ $rsym{ref} }->{$$ss{sub}} );
+			}
+			else { croak "unknown braces ".$$ss{braces} }
+			$self->_debug("dereferencing a subscript");
+			$temp_ptr = $temp_ptr->snext_sibling;
+		}
+		else { last }
+	}
+	$self->{ptr} = $temp_ptr;
 	return \%rsym;
+}
+
+# Handles a subscript, for use in _handle_symbol
+# Input: $self, subscript element
+# On Success Returns a hashref with the following elements:
+#   sub = the subscript's value
+#   braces = the brace type, either [] or {}
+# On Error returns a string
+# Does NOT advance the pointer
+sub _handle_subscript {
+	my ($self,$subscr) = @_;
+	croak "not a subscript" unless $subscr->isa('PPI::Structure::Subscript');
+	# fetch subscript
+	my @sub_ch = $subscr->schildren;
+	return $self->_errormsg("expected subscript to contain a single expression")
+		unless @sub_ch==1 && $sub_ch[0]->isa('PPI::Statement::Expression');
+	my @subs = $sub_ch[0]->schildren;
+	return $self->_errormsg("expected subscript to contain a single value")
+		unless @subs==1;
+	my $sub;
+	# autoquoting in hash braces
+	if ($subscr->braces eq '{}' && $subs[0]->isa('PPI::Token::Word'))
+		{ $sub = $subs[0]->literal }
+	else {
+		local $self->{ctx} = 'scalar';
+		local $self->{ptr} = $subs[0];
+		my $v = $self->_handle_value();
+		return $v unless ref $v;
+		$sub = $v->();
+	}
+	$self->_debug("evaluated subscript to \"$sub\", braces ".$subscr->braces);
+	return { sub=>$sub, braces=>$subscr->braces };
 }
 
 # Handles lots of different values (including lists)

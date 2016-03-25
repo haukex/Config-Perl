@@ -55,14 +55,12 @@ sub testundump ($$;$) {  ## no critic (ProhibitSubroutinePrototypes)
 }
 
 for my $test (@TESTS) {
+	# Purity should always be turned on
+	local $Data::Dumper::Purity=1;
 	testundump(Dumper(@$test),$test,"Undump Data::Dumper");
 	{
 		local $Data::Dumper::Useqq=1;
 		testundump(Dumper(@$test),$test,"Undump Data::Dumper w/ Useqq");
-	}
-	{
-		local $Data::Dumper::Purity=1;
-		testundump(Dumper(@$test),$test,"Undump Data::Dumper w/ Purity");
 	}
 	{
 		local $Data::Dumper::Deepcopy=1;
@@ -77,7 +75,7 @@ for my $test (@TESTS) {
 	}
 }
 
-# test a few passthru cases
+# test a few passthru cases (should not be recognized as Data::Dumper or Data::Dump output)
 testundump(q{ $foo="bar"; },[{'$foo'=>'bar'}],"Undump passthru 1");
 testundump(q{ $foo="bar"; $quz=[1,3,7]; },[{'$foo'=>'bar','$quz'=>[1,3,7]}],"Undump passthru 2");
 testundump(q{ $foo="bar"; {quz=>'baz'}; },[{'$foo'=>'bar','_'=>[{quz=>"baz"}]}],"Undump passthru 3");
@@ -87,8 +85,36 @@ my @w1 = warns {
 		no warnings 'FATAL'; use warnings;  ## no critic (ProhibitNoWarnings)
 		is_deeply [Undump('"foo"',"bar")], ["foo"], 'undump warn test';
 	};
-is @w1, 1, 'Undump extra args warn count';
+is @w1, 1, 'Undump extra args warn count'; #TODO: don't test for an exact number of warnings
 like $w1[0], qr/\bignoring extra arguments to Undump\b/i, 'Undump extra args warn';
+
+# ### first test of Data::Dumper self-referential data structures ###
+my $STRUCT = {
+	foo => [ {x=>1,y=>2}, "blah" ],
+	bar => { quz=>[7,8,9], baz=>"bleep!" },
+	quz => [ { a=>[qw/b c d/,{x=>4},7], b=>{t=>["u","v","x"]} },
+		[3,4,5,[6,7,8]], "h" ], };
+$STRUCT->{refs} = [
+	$STRUCT->{foo},
+	$STRUCT->{foo}->[0],
+	$STRUCT->{bar}->{quz},
+	$STRUCT->{quz}->[0]->{a}->[3],
+	$STRUCT->{quz}->[0]->{b}->{t},
+	$STRUCT->{quz}->[1]->[3],
+	];
+my $str = do {
+	local $Data::Dumper::Deepcopy = 0;
+	local $Data::Dumper::Purity = 1;
+	Dumper($STRUCT) };
+$str .= <<'ENDMORE'; # a few more refs to individual values with specific formats
+$x = $VAR1->{foo}->[1];
+$y = $VAR1->{quz}->[0]->{b}->{t}->[1];
+$z = $VAR1->{quz}->[1][3][2];
+ENDMORE
+note $str; #TODO debug, remove me
+test_ppconf $str, {'$VAR1'=>$STRUCT, '$x'=>"blah", '$y'=>"v", '$z'=>8},
+	'Data::Dumper complex self-ref. structure';
+# ###
 
 done_testing;
 
