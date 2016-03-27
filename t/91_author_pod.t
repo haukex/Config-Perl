@@ -64,10 +64,5 @@ is_deeply $data,
  my $str = Dumper(@input);          # dump the data structure to a string
  my @parsed = Undump($str);         # parse the data structure back out
 
-is_deeply \@parsed, [
-  ( { 'foo' => 'bar' },
-    [ 'Hello', 'World' ],
-    'undumping!'          )
-], 'Data::Undump::PPI POD Synopsis';
-
+is_deeply \@parsed, \@input, 'Data::Undump::PPI POD Synopsis';
 

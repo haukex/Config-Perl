@@ -22,10 +22,7 @@ Remember to test this by copy/pasting to/from 91_author_pod.t
  my $str = Dumper(@input);          # dump the data structure to a string
  my @parsed = Undump($str);         # parse the data structure back out
  
- # @parsed now looks like this:
- # ( { 'foo' => 'bar' },
- #   [ 'Hello', 'World' ],
- #   'undumping!'          )
+ # @parsed now looks identical to @input (is a deep copy)
 
 =head1 Description
 
