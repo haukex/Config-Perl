@@ -36,7 +36,8 @@ Remember to test this by copy/pasting to/from 91_author_pod.t
 The goal of this module is to support the parsing of a small subset of Perl,
 primarily in order to parse configuration files written in that subset of Perl.
 As a side effect, this module can "undump" some data structures written by
-L<Data::Dumper|Data::Dumper> and L<Data::Dump|Data::Dump> - see L<Data::Undump::PPI>.
+L<Data::Dumper|Data::Dumper> and L<Data::Dump|Data::Dump>, but
+please make sure to read L<Data::Undump::PPI> for details!
 
 The code is parsed via L<PPI|PPI>, eliminating the need for Perl's C<eval>.
 This should provide a higher level of safety* compared to C<eval>
@@ -45,7 +46,7 @@ This should provide a higher level of safety* compared to C<eval>
 * B<Disclaimer:> A "higher level of safety" does not mean "perfect safety".
 This software is distributed B<without any warranty>; without even the implied
 warranty of B<merchantability> or B<fitness for a particular purpose>.
-See also the licence for this software.
+See also the license for this software.
 
 This module attempts to provide 100% compatibility with Perl over the subset of Perl it supports.
 When a Perl feature is not supported by this module, it should complain 
@@ -136,6 +137,10 @@ and some escape sequences (e.g. C<"\x00">)
 
 C<do> blocks (contents limited to the supported features listed here)
 
+=item *
+
+dereferencing via the arrow operator (also implicit arrow operator between subscripts)
+
 =back
 
 =head2 What is not supported (yet)
@@ -153,7 +158,7 @@ lexical variables (C<my>) (wishlist)
 
 =item *
 
-taking references via C<\> and dereferencing (C<@{...}>, C<%{...}>, etc.) (wishlist)
+taking references via C<\> and dereferencing via C<@{...}>, C<%{...}>, etc. (wishlist)
 
 =item *
 
