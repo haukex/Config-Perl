@@ -24,8 +24,8 @@ BEGIN {
 	use_ok 'Config::Perl' or BAIL_OUT("failed to use Config::Perl");
 	use_ok 'Data::Undump::PPI' or BAIL_OUT("failed to use Data::Undump::PPI");
 }
-is $Config::Perl::VERSION, '0.04', 'version matches tests';
-is $Data::Undump::PPI::VERSION, '0.04', 'version matches tests';
+is $Config::Perl::VERSION, '0.05', 'version matches tests';
+is $Data::Undump::PPI::VERSION, '0.05', 'version matches tests';
 
 test_ppconf <<'END1'
 $foo = 1;
