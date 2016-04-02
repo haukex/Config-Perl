@@ -106,7 +106,9 @@ test_ppconf q{ our $foo="bar\n"; }, { '$foo'=>"bar\n" }, 'interp newline';
 test_ppconf q{ our $foo="bar\r\n"; }, { '$foo'=>"bar\r\n" }, 'interp linefeed';
 test_ppconf q{ our $foo="\tbar\n\tquz"; }, { '$foo'=>"\tbar\n\tquz" }, 'interp tab';
 test_ppconf qq{ our \$foo="bar\n\tquz"; }, { '$foo'=>"bar\n\tquz" }, 'embedded newline & tab';
-# Note that backslash escapes like \xAA and \123 are currently tested in 20_undump.t
+
+test_ppconf q{ our $foo="\0534\x4F0\1753"; }, { '$foo'=>"+4O0}3" }, 'backsl oct & hex';
+#TODO Later: more tests for backslash escapes
 
 # ### Assignments ###
 

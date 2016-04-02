@@ -691,7 +691,7 @@ sub _handle_value {  ## no critic (ProhibitExcessComplexity)
 my %_backsl_tbl = ( '\\'=>'\\', '$'=>'$', '"'=>'"', "'"=>"'", 'n'=>"\n", 'r'=>"\r", 't'=>"\t" );
 sub _unbackslash {
 	my ($what) = @_;
-	return chr(oct($what)) if $what=~/^[0-7]{1,3}+$/;
+	return chr(oct($what)) if $what=~/^[0-7]{1,3}$/;
 	return chr(hex($1)) if $what=~/^x([0-9A-Fa-f]{2})$/;  ## no critic (ProhibitCaptureWithoutTest)
 	return $_backsl_tbl{$what} if exists $_backsl_tbl{$what};
 	croak "Don't support escape sequence \"\\$what\"";
