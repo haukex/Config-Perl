@@ -22,6 +22,7 @@ use Test::More;
 use Test::Fatal 'exception';
 
 use Config::Perl;
+use Data::Undump::PPI;
 
 my $cp = Config::Perl->new;
 
@@ -55,6 +56,38 @@ like exception { $cp->parse_or_die(\q{ do { my $x = "abc"; } }) },
 
 like exception { Config::Perl->new->parse_or_die(\q{ @foo[3,4] }) },
 	qr/\bExpected subscript to contain a single value\b/i, 'subscript multi value';
+
+# Warning Tests
+
+my @w1 = warns {
+		test_ppconf q{ "foo"; $bar="quz"; }, { '$bar'=>"quz" }, 'value in void ctx';
+	};
+ok @w1>=1, 'value in void ctx warn count';
+is grep({/\bvalue in void context\b/i} @w1), 1, 'value in void ctx warning';
+
+my @w2 = warns {
+		test_ppconf q{ do { "abc" }; 1 }, { '_' =>[ 1 ] }, 'do block void ctx';
+	};
+ok @w2>=1, 'do block void ctx warn count';
+is grep({/\bvalue in void context\b/i} @w2), 1, 'do block void ctx warning';
+
+my @w3 = warns {
+	test_ppconf q{ our $baz="baz$xyz"; },
+		{ '$baz'=>"baz" }, 'undef interp 1', {add_syms=>{'$xyz'=>\undef}};
+	test_ppconf q{ our $xyz=undef; our $baz="baz$xyz"; },
+		{ '$xyz'=>undef, '$baz'=>"baz" }, 'undef interp 2';
+	};
+ok @w3>=2, 'undef interp warn count';
+is grep({/\bUse of uninitialized value \$xyz in interpolation\b/} @w3), 2, 'undef interp warn';
+
+my @w4 = warns {
+		no warnings 'FATAL'; use warnings;  ## no critic (ProhibitNoWarnings)
+		is_deeply [Undump('"foo"',"bar")], ["foo"], 'undump warn test';
+	};
+ok @w4>=1, 'Undump extra args warn count';
+is grep({/\bignoring extra arguments to Undump\b/i} @w4), 1, 'Undump extra args warn';
+
+
 
 
 done_testing;

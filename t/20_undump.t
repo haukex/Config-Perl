@@ -80,14 +80,6 @@ testundump(q{ $foo="bar"; },[{'$foo'=>'bar'}],"Undump passthru 1");
 testundump(q{ $foo="bar"; $quz=[1,3,7]; },[{'$foo'=>'bar','$quz'=>[1,3,7]}],"Undump passthru 2");
 testundump(q{ $foo="bar"; {quz=>'baz'}; },[{'$foo'=>'bar','_'=>[{quz=>"baz"}]}],"Undump passthru 3");
 
-# test warns
-my @w1 = warns {
-		no warnings 'FATAL'; use warnings;  ## no critic (ProhibitNoWarnings)
-		is_deeply [Undump('"foo"',"bar")], ["foo"], 'undump warn test';
-	};
-ok @w1>=1, 'Undump extra args warn count';
-is grep({/\bignoring extra arguments to Undump\b/i} @w1), 1, 'Undump extra args warn';
-
 # ### first test of Data::Dumper self-referential data structures ###
 my $STRUCT = {
 	foo => [ {x=>1,y=>2}, "blah" ],

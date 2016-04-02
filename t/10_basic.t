@@ -48,12 +48,6 @@ ok exception {
 		\q{ our @x = qw/a b/, our @y = qw/c d/ });
 }, 'accidental comma fails';
 
-my @w2 = warns {
-		test_ppconf q{ "foo"; $bar="quz"; }, { '$bar'=>"quz" }, 'value in void ctx';
-	};
-ok @w2>=1, 'value in void ctx warn count';
-is grep({/\bvalue in void context\b/i} @w2), 1, 'value in void ctx warning';
-
 test_ppconf q{ LBL: "foo" }, { _=>["foo"] }, 'plain value w/ label';
 test_ppconf q{ LBL: $foo = "bar"; }, { '$foo'=>"bar" }, 'assignment w/ label';
 test_ppconf q{ LBL: our $foo="bar"; }, { '$foo'=>"bar" }, 'decl w/ label';
@@ -83,15 +77,6 @@ test_ppconf q{ our $foo='$bar'; }, { '$foo'=>'$bar' }, 'non-interpolated';
 test_ppconf q{ our $foo= -bar; }, { '$foo'=>-bar }, 'dashed bareword';
 test_ppconf q{ our $foo="bar"; our $quz="baz$foo"; },
 	{ '$foo'=>"bar", '$quz'=>"bazbar" }, 'interpolation';
-
-my @w1 = warns {
-	test_ppconf q{ our $baz="baz$xyz"; },
-		{ '$baz'=>"baz" }, 'undef interp 1', {add_syms=>{'$xyz'=>\undef}};
-	test_ppconf q{ our $xyz=undef; our $baz="baz$xyz"; },
-		{ '$xyz'=>undef, '$baz'=>"baz" }, 'undef interp 2';
-	};
-ok @w1>=2, 'undef interp warn count';
-is grep({/\bUse of uninitialized value \$xyz in interpolation\b/} @w1), 2, 'undef interp warn';
 
 test_ppconf q{ our $foo="bar"; our $quz="baz$foo$foo"; },
 	{ '$foo'=>"bar", '$quz'=>"bazbarbar" }, 'multi interp';
@@ -239,12 +224,6 @@ test_ppconf q{ our $foo = do { "def" } }, { '$foo' => 'def' }, 'simple do block'
 test_ppconf q{ our @foo = ("a", do { 345 }, "c") }, { '@foo' => ["a",345,"c"] },
 	'do block in list';
 test_ppconf q{ do {} }, { }, 'empty do block';
-my @w3 = warns {
-		test_ppconf q{ do { "abc" }; 1 }, { '_' =>[ 1 ] }, 'do block void ctx';
-	};
-ok @w3>=1, 'do block void ctx warn count';
-is grep({/\bvalue in void context\b/i} @w3), 1, 'do block void ctx warning';
-
 
 done_testing;
 
