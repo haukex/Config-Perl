@@ -7,7 +7,8 @@ our $VERSION = '0.03';
 
 =head1 Name
 
-Data::Undump::PPI - Perl extension for limited undumping of data structures via PPI
+Data::Undump::PPI - Perl extension for limited undumping of data structures
+(via PPI, not eval)
 
 =head1 Synopsis
 
@@ -68,8 +69,8 @@ and its name a little easier to remember.
 
 This document describes version 0.03 of the module.
 B<This is a development version.>
-Although this module is well-tested and working, it still lacks some
-features to make it I<really> useful (see L<Config::Perl|Config::Perl>).
+Although this module has a fair number of tests, it still lacks some
+features (see L<Config::Perl|Config::Perl>) and there may be bugs lurking.
 Contributions are welcome!
 
 =head1 Author, Copyright, and License

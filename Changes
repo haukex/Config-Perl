@@ -1,9 +1,9 @@
-Revision history for Perl extension Config::Perl.
+Revision history for Perl extension Config-Perl.
 
 0.04	not yet released
-	- added support for dereferencing and thereby
+	- added support for "->" dereferencing and thereby
 	  Data::Dumper's self-referential data structures
-	- rewrote internals
+	- rewrote many internals, updated documentation
 	- added debug option
 
 0.02	Sat, May 23 2015	commit 4958cad4f3f48f763f4c4d10b5a0cdc4f9a95a3d

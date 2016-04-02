@@ -7,8 +7,8 @@ our $VERSION = '0.03';
 
 =head1 Name
 
-Config::Perl - Perl extension to parse configuration files written in a subset of Perl
-and (limited) undumping of data structures (safer than eval thanks to parsing via PPI)
+Config::Perl - Perl extension for parsing configuration files written in a
+subset of Perl and (limited) undumping of data structures (via PPI, not eval)
 
 =head1 Synopsis
 
@@ -59,8 +59,8 @@ it may cause an error, or may fail in some other silent way.
 
 This document describes version 0.03 of the module.
 B<This is a development version.>
-Although this module is well-tested and working, it still lacks some
-features to make it I<really> useful (see list below).
+Although this module has a fair number of tests, it still lacks some
+features (see list below) and there may be bugs lurking.
 Contributions are welcome!
 
 =head2 Interface
