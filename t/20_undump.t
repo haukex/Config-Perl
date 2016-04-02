@@ -85,8 +85,8 @@ my @w1 = warns {
 		no warnings 'FATAL'; use warnings;  ## no critic (ProhibitNoWarnings)
 		is_deeply [Undump('"foo"',"bar")], ["foo"], 'undump warn test';
 	};
-is @w1, 1, 'Undump extra args warn count'; #TODO: don't test for an exact number of warnings
-like $w1[0], qr/\bignoring extra arguments to Undump\b/i, 'Undump extra args warn';
+ok @w1>=1, 'Undump extra args warn count';
+is grep({/\bignoring extra arguments to Undump\b/i} @w1), 1, 'Undump extra args warn';
 
 # ### first test of Data::Dumper self-referential data structures ###
 my $STRUCT = {
