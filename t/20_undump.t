@@ -21,7 +21,7 @@ use Config_Perl_Testlib;
 use Test::More;
 use Test::Fatal 'exception';
 
-use Data::Dumper 'Dumper';
+use Data::Dumper ();
 
 our $HAVE_DATA_DUMP;
 BEGIN { $HAVE_DATA_DUMP = eval q{ use Data::Dump 'pp'; 1 } };  ## no critic (ProhibitStringyEval)
@@ -31,17 +31,22 @@ BEGIN {
 	use_ok 'Data::Undump::PPI';
 }
 
+# each element of @TESTS is a hashref:
+# { pp => <whether this test is expected to work with Data::Dump>,
+#   data => [<test data>] }
 my @TESTS = (
-	[ "Hello" ],
-	[ "Hello", "World" ],
-	[ map {$_*3} 1..20 ], #TODO Later: Support range operator (Data::Dump generates code with it)
-	[ {foo=>"bar",quz=>"baz"} ],
-	[ [qw/abc def/] ],
-	[ {foo=>"bar"}, ["quz","baz"], "blah" ],
-	[ "A\x00B", "C\x11D", "E\x7FF" ],
-	[ { foo=>[-abc,{def=>123},["hello",1,-7e8,9.8001]],
-	  bar=>{deep=>{hash=>{refs=>567},blah=>[444]}} } ],
-	#TODO Later: self-referential data structures
+	{ pp=>1, data=>[ "Hello" ] },
+	{ pp=>1, data=>[ "Hello", "World" ] },
+	{ pp=>0, data=>[ 1..20 ] }, #TODO Later: Support range operator (Data::Dump generates code with it)
+	{ pp=>1, data=>[ map {$_*3} 1..20 ] }, # Data::Dump won't infer the range here
+	{ pp=>1, data=>[ {foo=>"bar",quz=>"baz"} ] },
+	{ pp=>1, data=>[ [qw/abc def/] ] },
+	{ pp=>1, data=>[ {foo=>"bar"}, ["quz","baz"], "blah" ] },
+	{ pp=>1, data=>[ "A\x00B", "C\x11D", "E\x7FF" ] },
+	{ pp=>1, data=>[ { foo=>[-abc,{def=>123},["hello",1,-7e8,9.8001]],
+	  bar=>{deep=>{hash=>{refs=>567},blah=>[444]}} } ] },
+	{ pp=>0, data=>[ do { my $x={foo=>"bar"}; ($x,$x,[$x,$x]) } ] },
+	#TODO Later: more tests for self-referential data structures
 );
 
 sub testundump ($$;$) {  ## no critic (ProhibitSubroutinePrototypes)
@@ -55,23 +60,27 @@ sub testundump ($$;$) {  ## no critic (ProhibitSubroutinePrototypes)
 }
 
 for my $test (@TESTS) {
+	my $dd = Data::Dumper->new($$test{data});
 	# Purity should always be turned on
-	local $Data::Dumper::Purity=1;
-	testundump(Dumper(@$test),$test,"Undump Data::Dumper");
-	{
-		local $Data::Dumper::Useqq=1;
-		testundump(Dumper(@$test),$test,"Undump Data::Dumper w/ Useqq");
+	$dd->Purity(1)->Useqq(0)->Deepcopy(0)->Terse(0);
+	# Basic test
+	testundump($dd->Dump,$$test{data},"Undump Data::Dumper");
+	$dd->Reset;
+	# Useqq
+	$dd->Useqq(1);
+	testundump($dd->Dump,$$test{data},"Undump Data::Dumper w/ Useqq");
+	$dd->Reset->Useqq(0);
+	# Deepcopy
+	$dd->Deepcopy(1);
+	testundump($dd->Dump,$$test{data},"Undump Data::Dumper w/ Deepcopy");
+	$dd->Reset->Deepcopy(0);
+	if (@{$$test{data}}==1) { # Terse only produces valid Perl with one value
+		$dd->Terse(1);
+		testundump($dd->Dump,$$test{data},"Undump Data::Dumper w/ Terse");
+		$dd->Reset->Terse(0);
 	}
-	{
-		local $Data::Dumper::Deepcopy=1;
-		testundump(Dumper(@$test),$test,"Undump Data::Dumper w/ Deepcopy");
-	}
-	if (@$test==1) { # Terse only produces valid Perl with one value
-		local $Data::Dumper::Terse=1;
-		testundump(Dumper(@$test),$test,"Undump Data::Dumper w/ Terse");
-	}
-	if ($HAVE_DATA_DUMP) {
-		testundump(pp(@$test),$test,"Undump Data::Dump");
+	if ($HAVE_DATA_DUMP && $$test{pp}) {
+		testundump(pp(@{$$test{data}}),$$test{data},"Undump Data::Dump");
 	}
 }
 
@@ -80,7 +89,7 @@ testundump(q{ $foo="bar"; },[{'$foo'=>'bar'}],"Undump passthru 1");
 testundump(q{ $foo="bar"; $quz=[1,3,7]; },[{'$foo'=>'bar','$quz'=>[1,3,7]}],"Undump passthru 2");
 testundump(q{ $foo="bar"; {quz=>'baz'}; },[{'$foo'=>'bar','_'=>[{quz=>"baz"}]}],"Undump passthru 3");
 
-# ### first test of Data::Dumper self-referential data structures ###
+# ### more complex test of Data::Dumper self-referential data structures ###
 my $STRUCT = {
 	foo => [ {x=>1,y=>2}, "blah" ],
 	bar => { quz=>[7,8,9], baz=>"bleep!" },
@@ -94,16 +103,13 @@ $STRUCT->{refs} = [
 	$STRUCT->{quz}->[0]->{b}->{t},
 	$STRUCT->{quz}->[1]->[3],
 	];
-my $str = do {
-	local $Data::Dumper::Deepcopy = 0;
-	local $Data::Dumper::Purity = 1;
-	Dumper($STRUCT) };
+my $str = Data::Dumper->new([$STRUCT])
+	->Purity(1)->Useqq(0)->Deepcopy(0)->Terse(0)->Dump;
 $str .= <<'ENDMORE'; # a few more refs to individual values with specific formats
 $x = $VAR1->{foo}->[1];
 $y = $VAR1->{quz}->[0]->{b}->{t}->[1];
 $z = $VAR1->{quz}->[1][3][2];
 ENDMORE
-note $str; #TODO debug, remove me
 test_ppconf $str, {'$VAR1'=>$STRUCT, '$x'=>"blah", '$y'=>"v", '$z'=>8},
 	'Data::Dumper complex self-ref. structure';
 # ###

@@ -45,8 +45,6 @@ TODO: { todo_skip "my in blocks not yet implemented", 1*2;
 	test_ppconf q{ my $foo = 123; my $bar = do { my $foo=456; $foo }; }, { '$foo'=>123, '$bar'=>456 }, '"my" in block';
 }
 
-#TODO Later: Test to make sure that ->{} subscripts *don't* work
-
 ok exception { Config::Perl->new->parse_or_die(\q{ push @foo, "bar"; }) }, 'push unsupported';
 
 ok exception { Config::Perl->new->parse_or_die(\q{ @foo[123] }) }, 'slice etc. unsupported 1';
