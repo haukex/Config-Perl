@@ -15,6 +15,11 @@ subset of Perl and (limited) undumping of data structures (via PPI, not eval)
 =for comment
 Remember to test this by copy/pasting to/from 91_author_pod.t
 
+=for comment
+TODO Later: metacpan strips the extra space from the front of the code sample,
+so the extra space we added in ' END_CONFIG_FILE' breaks the script...
+search.cpan.org keeps the space there. What's the best solution?
+
  use Config::Perl;
  my $parser = Config::Perl->new;
  my $data = $parser->parse_or_die( \<<' END_CONFIG_FILE' );
@@ -174,7 +179,8 @@ conditionals, like for example a very simple C<if ($^O eq 'linux') { ... }> (may
 
 =item *
 
-any functions (mostly this is "no"; supporting a very small subset of functions, e.g. C<push>, is "maybe")
+any functions, including C<bless>
+(mostly this is "no"; supporting a very small subset of functions, e.g. C<push>, is "maybe")
 
 =item *
 

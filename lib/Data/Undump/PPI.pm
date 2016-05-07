@@ -48,7 +48,7 @@ as otherwise L<Data::Dumper|Data::Dumper> may produce code that may not evaluate
 back to the same data structure, sometimes even though it's valid, parseable Perl!
 
 This module aims to support most of L<Data::Dumper|Data::Dumper>'s features
-- except, notably, code references.
+- except, notably, code references and C<bless>ed objects.
 If you find a L<Data::Dumper|Data::Dumper> data structure that this module
 does not yet support, please feel free to send in your data structure, as
 it can help extend L<Config::Perl|Config::Perl>'s features and help fix bugs.
