@@ -23,9 +23,14 @@ use Test::Fatal 'exception';
 
 use Data::Dumper ();
 
+# Data::Undump::PPI used to support Data::Dump, but since that support was
+# only partial, I've disabled it completely for now to avoid confusion.
+# Also, since the output of Data::Dumper with the Terse option is often
+# indistinguishable from Data::Dump, this means Terse is currently not supported.
 our $HAVE_DATA_DUMP;
-BEGIN { $HAVE_DATA_DUMP = eval q{ use Data::Dump 'pp'; 1 } };  ## no critic (ProhibitStringyEval)
-diag  $HAVE_DATA_DUMP ? "Note: have Data::Dump" : "DON'T have suggested module Data::Dump";
+$HAVE_DATA_DUMP = 0;
+#BEGIN { $HAVE_DATA_DUMP = eval q{ use Data::Dump 'pp'; 1 } };  ## no critic (ProhibitStringyEval)
+#diag  $HAVE_DATA_DUMP ? "Note: have Data::Dump" : "DON'T have suggested module Data::Dump";
 
 BEGIN {
 	use_ok 'Data::Undump::PPI';
@@ -74,7 +79,14 @@ for my $test (@TESTS) {
 	$dd->Deepcopy(1);
 	testundump($dd->Dump,$$test{data},"Undump Data::Dumper w/ Deepcopy");
 	$dd->Reset->Deepcopy(0);
-	if (@{$$test{data}}==1) { # Terse only produces valid Perl with one value
+	# String ends on true value
+	testundump($dd->Dump."; 1;",$$test{data},"Undump Data::Dumper w/ true 1");
+	$dd->Reset;
+	# sometimes people use a string instead of "1;" as a true value
+	testundump($dd->Dump."; \"true\";",$$test{data},"Undump Data::Dumper w/ true 2");
+	$dd->Reset;
+	# NOTE See notes on Data::Dump on why I've disabled support for Terse for now
+	if (0 && @{$$test{data}}==1) { # Terse only produces valid Perl with one value
 		$dd->Terse(1);
 		testundump($dd->Dump,$$test{data},"Undump Data::Dumper w/ Terse");
 		$dd->Reset->Terse(0);
@@ -83,11 +95,6 @@ for my $test (@TESTS) {
 		testundump(pp(@{$$test{data}}),$$test{data},"Undump Data::Dump");
 	}
 }
-
-# test a few passthru cases (should not be recognized as Data::Dumper or Data::Dump output)
-testundump(q{ $foo="bar"; },[{'$foo'=>'bar'}],"Undump passthru 1");
-testundump(q{ $foo="bar"; $quz=[1,3,7]; },[{'$foo'=>'bar','$quz'=>[1,3,7]}],"Undump passthru 2");
-testundump(q{ $foo="bar"; {quz=>'baz'}; },[{'$foo'=>'bar','_'=>[{quz=>"baz"}]}],"Undump passthru 3");
 
 # ### more complex test of Data::Dumper self-referential data structures ###
 my $STRUCT = {

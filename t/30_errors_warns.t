@@ -82,11 +82,21 @@ is grep({/\bUse of uninitialized value \$xyz in interpolation\b/} @w3), 2, 'unde
 
 my @w4 = warns {
 		no warnings 'FATAL'; use warnings;  ## no critic (ProhibitNoWarnings)
-		is_deeply [Undump('"foo"',"bar")], ["foo"], 'undump warn test';
+		is_deeply [Undump('$VAR1="foo"',"bar")], ["foo"], 'undump warn test';
 	};
 ok @w4>=1, 'Undump extra args warn count';
 is grep({/\bignoring extra arguments to Undump\b/i} @w4), 1, 'Undump extra args warn';
 
+like exception { Undump(q{ $foo="bar"; }) },
+	qr/\bdoesn't look like Data::Dumper\b/i, 'Undump not Dumper output 1';
+like exception { Undump(q{ $foo="bar"; $quz=[1,3,7]; }) },
+	qr/\bdoesn't look like Data::Dumper\b/i, 'Undump not Dumper output 2';
+like exception { Undump(q{ $foo="bar"; {quz=>'baz'}; }) },
+	qr/\bdoesn't look like Data::Dumper\b/i, 'Undump not Dumper output 3';
+like exception { Undump(q{ $VAR1="bar"; 0; }) },
+	qr/\bdoesn't look like Data::Dumper\b/i, 'Undump not Dumper output 4';
+like exception { Undump(q{ $VAR1="bar"; ("foo","bar"); }) },
+	qr/\bdoesn't look like Data::Dumper\b/i, 'Undump not Dumper output 5';
 
 
 

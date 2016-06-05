@@ -21,7 +21,7 @@ L<http://perldoc.perl.org/perlartistic.html>.
 
 =cut
 
-use base 'Exporter';
+use base 'Exporter'; # "parent" pragma wasn't core until 5.10.1
 our @EXPORT = qw/ $AUTHOR_TESTS $DEVEL_COVER warns test_ppconf /;  ## no critic (ProhibitAutomaticExportation)
 
 our $AUTHOR_TESTS = ! ! $ENV{CONFIG_PERL_AUTHOR_TESTS};

@@ -27,7 +27,6 @@ WriteMakefile(
 				recommends => { # "strongly encouraged and should be satisfied except in resource constrained environments"
 				},
 				suggests   => { # "optional, but are suggested for enhanced operation"
-					'Data::Dump'    => 0,
 				},
 			},
 		},
@@ -49,7 +48,7 @@ WriteMakefile(
 		'Test::More'             => 0,
 		'FindBin'                => 0,
 		'Exporter'               => 0,
-		'base'                   => 0,
+		'base'                   => 0, # "parent" pragma wasn't core until 5.10.1
 		'File::Temp'             => 0,
 		'Data::Dumper'           => 0,
 		# note I haven't included modules needed for author tests here

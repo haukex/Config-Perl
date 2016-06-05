@@ -41,7 +41,7 @@ search.cpan.org keeps the space there. What's the best solution?
 The goal of this module is to support the parsing of a small subset of Perl,
 primarily in order to parse configuration files written in that subset of Perl.
 As a side effect, this module can "undump" some data structures written by
-L<Data::Dumper|Data::Dumper> and L<Data::Dump|Data::Dump>, but
+L<Data::Dumper|Data::Dumper>, but
 please make sure to read L<Data::Undump::PPI> for details!
 
 The code is parsed via L<PPI|PPI>, eliminating the need for Perl's C<eval>.
