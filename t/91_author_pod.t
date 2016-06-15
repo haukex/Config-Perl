@@ -27,7 +27,7 @@ BEGIN {
 	);
 }
 
-use Test::More $AUTHOR_TESTS && !$DEVEL_COVER ? (tests=>1*@PODFILES+2)
+use Test::More $AUTHOR_TESTS && !$DEVEL_COVER ? (tests=>1*@PODFILES+3)
 	: (skip_all=>$DEVEL_COVER?'skipping during Devel::Cover tests':'author POD tests');
 
 use Test::Pod;
@@ -57,12 +57,18 @@ is_deeply $data,
 
 # Test the Data::Undump::PPI POD Synopsis (copy & paste to/from there)
  use Data::Dumper;
- use Data::Undump::PPI;             # exports the "Undump()" function
+ use Data::Undump::PPI;             # "Undump()" is exported by default
  $Data::Dumper::Purity=1;           # should always be turned on for Undump
  
  my @input = ( {foo=>"bar"}, ["Hello","World"], "undumping!" );
  my $str = Dumper(@input);          # dump the data structure to a string
  my @parsed = Undump($str);         # parse the data structure back out
+ # @parsed now looks identical to @input (is a deep copy)
+ 
+ use Data::Undump::PPI qw/Dump Undump/;
+ Dump(\@input, file=>'/tmp/test.conf');      # Data::Dumper to file
+ my @conf = Undump(file=>'/tmp/test.conf');  # Undump directly from file
 
-is_deeply \@parsed, \@input, 'Data::Undump::PPI POD Synopsis';
+is_deeply \@parsed, \@input, 'Data::Undump::PPI POD Synopsis 1';
+is_deeply \@conf, \@input, 'Data::Undump::PPI POD Synopsis 2'
 

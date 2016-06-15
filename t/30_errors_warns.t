@@ -82,10 +82,10 @@ is grep({/\bUse of uninitialized value \$xyz in interpolation\b/} @w3), 2, 'unde
 
 my @w4 = warns {
 		no warnings 'FATAL'; use warnings;  ## no critic (ProhibitNoWarnings)
-		is_deeply [Undump('$VAR1="foo"',"bar")], ["foo"], 'undump warn test';
+		is_deeply [scalar Undump('$VAR1="foo";$VAR2="bar"')], ["bar"], 'undump scalar ctx warn test';
 	};
-ok @w4>=1, 'Undump extra args warn count';
-is grep({/\bignoring extra arguments to Undump\b/i} @w4), 1, 'Undump extra args warn';
+ok @w4>=1, 'Undump scalar ctx warn count';
+is grep({/\bcalled in scalar context but data contained more than one value\b/i} @w4), 1, 'Undump scalar ctx warn';  ## no critic (ProhibitComplexRegexes)
 
 like exception { Undump(q{ $foo="bar"; }) },
 	qr/\bdoesn't look like Data::Dumper\b/i, 'Undump not Dumper output 1';

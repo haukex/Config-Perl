@@ -38,8 +38,10 @@ WriteMakefile(
 		# CPAN
 		'PPI'                    => 0,
 		# Perl core modules
+		'Exporter'               => 0,
 		'Carp'                   => 0,
 		'warnings::register'     => 0,
+		'Data::Dumper'           => 0,
 	},
 	TEST_REQUIRES  => {
 		# CPAN
@@ -47,10 +49,8 @@ WriteMakefile(
 		# Perl core modules
 		'Test::More'             => 0,
 		'FindBin'                => 0,
-		'Exporter'               => 0,
 		'base'                   => 0, # "parent" pragma wasn't core until 5.10.1
 		'File::Temp'             => 0,
-		'Data::Dumper'           => 0,
 		# note I haven't included modules needed for author tests here
 	},
 );

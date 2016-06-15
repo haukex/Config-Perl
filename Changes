@@ -2,6 +2,8 @@ Revision history for Perl extension Config-Perl.
 
 0.06	not yet released
 	- Undump now supports files ending on a true value (e.g. "1;")
+	- Undump can now read from files and filehandles
+	- Added "Dump" helper function to Data::Undump::PPI
 	- Undump dropped support for Data::Dump (for now)
 
 0.04	Sat, Apr  2 2016	commit f9640e7d1796ee57aef398d95839ca092d38e65b
