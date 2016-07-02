@@ -61,9 +61,12 @@ close $ifh2;
 ok cmp_no_ws($gotfile, $string), 'Dump filename'
 	or diag explain $gotfile, $string;
 
-open my $ofh3, '>', \my $gotfh or die $!;
-Dump($expected,fh=>$ofh3);
-close $ofh3;
+my ($tfh3,$tfn3) = tempfile(UNLINK=>1);
+Dump($expected,fh=>$tfh3);
+close $tfh3;
+open $tfh3, '<', $tfn3 or die $!;
+my $gotfh = do { local $/=undef; <$tfh3> };
+close $tfh3;
 $gotfh = "#!perl\n${gotfh}\n1;\n";
 ok cmp_no_ws($gotfh, $string), 'Dump filehandle'
 	or diag explain $gotfh, $string;
