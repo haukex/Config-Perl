@@ -122,7 +122,7 @@ arrayrefs and hashrefs constructed via C<[]> and C<{}> resp.
 =item *
 
 declarations - only C<our>, also C<my> on the outermost level (document)
-where it is treated exactly like C<our>;
+where it is currently treated exactly like C<our>;
 not supported are lexical C<my> inside blocks, C<local> or C<state>
 
 =item *

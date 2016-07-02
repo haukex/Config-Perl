@@ -65,7 +65,7 @@ is_deeply $data,
  my @parsed = Undump($str);         # parse the data structure back out
  # @parsed now looks identical to @input (is a deep copy)
  
- use Data::Undump::PPI qw/Dump Undump/;
+ use Data::Undump::PPI qw/Dump Undump/;      # additionally import "Dump()"
  Dump(\@input, file=>'/tmp/test.conf');      # Data::Dumper to file
  my @conf = Undump(file=>'/tmp/test.conf');  # Undump directly from file
 
