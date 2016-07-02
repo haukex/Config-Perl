@@ -1,6 +1,9 @@
 Revision history for Perl extension Config-Perl.
 
-0.06	Sat, Jul  2 2016
+0.08	not yet released
+	- ...
+
+0.06	Sat, Jul  2 2016	commit 0304c753e23dc9c648660350447d021688579cfa
 	- INCOMPATIBLE CHANGES:
 		- Undump dropped support for Data::Dump (for now)
 		- Undump no longer passes through Config::Perl return values
