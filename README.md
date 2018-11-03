@@ -2,12 +2,13 @@ Config-Perl
 ===========
 
 This is the distribution of the Perl modules
-`Config::Perl` and `Data::Undump::PPI`.
+[`Config::Perl`](https://metacpan.org/pod/Config::Perl) and
+[`Data::Undump::PPI`](https://metacpan.org/pod/Data::Undump::PPI).
 
 They are Perl extensions for parsing configuration files written in a subset
 of Perl and (limited) undumping of data structures (via PPI, not eval).
 
-Please see the module's documentation (POD) for details (try the commands
+Please see the modules' documentation (POD) for details (try the commands
 `perldoc lib/Config/Perl.pm` and `perldoc lib/Data/Undump/PPI.pm`) and the
 file `Changes` for version information.
 
