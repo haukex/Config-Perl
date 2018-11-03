@@ -11,6 +11,9 @@ Please see the module's documentation (POD) for details (try the commands
 `perldoc lib/Config/Perl.pm` and `perldoc lib/Data/Undump/PPI.pm`) and the
 file `Changes` for version information.
 
+[![Travis CI Build Status](https://travis-ci.org/haukex/Config-Perl.png)](https://travis-ci.org/haukex/Config-Perl)
+[![CPAN Testers](https://badges.zero-g.net/cpantesters/Config-Perl.svg)](http://matrix.cpantesters.org/?dist=Config-Perl)
+
 Installation
 ------------
 
