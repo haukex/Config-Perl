@@ -14,7 +14,7 @@ file `Changes` for version information.
 
 [![Travis CI Build Status](https://travis-ci.org/haukex/Config-Perl.svg)](https://travis-ci.org/haukex/Config-Perl)
 [![Coverage Status](https://coveralls.io/repos/github/haukex/Config-Perl/badge.svg)](https://coveralls.io/github/haukex/Config-Perl)
-[![Kwalitee Score](https://badges.zero-g.net/kwalitee/Config-Perl.svg)](https://cpants.cpanauthors.org/dist/Config-Perl)
+[![Kwalitee Score](https://cpants.cpanauthors.org/dist/Config-Perl.svg)](https://cpants.cpanauthors.org/dist/Config-Perl)
 [![CPAN Testers](https://badges.zero-g.net/cpantesters/Config-Perl.svg)](http://matrix.cpantesters.org/?dist=Config-Perl)
 
 Installation
