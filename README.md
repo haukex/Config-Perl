@@ -13,6 +13,7 @@ Please see the modules' documentation (POD) for details (try the commands
 file `Changes` for version information.
 
 [![Travis CI Build Status](https://travis-ci.org/haukex/Config-Perl.svg)](https://travis-ci.org/haukex/Config-Perl)
+[![Coverage Status](https://coveralls.io/repos/github/haukex/Config-Perl/badge.svg)](https://coveralls.io/github/haukex/Config-Perl)
 [![CPAN Testers](https://badges.zero-g.net/cpantesters/Config-Perl.svg)](http://matrix.cpantesters.org/?dist=Config-Perl)
 
 Installation
