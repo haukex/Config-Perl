@@ -16,7 +16,7 @@ file `Changes` for version information.
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/haukex/Config-Perl?svg=true)](https://ci.appveyor.com/project/haukex/config-perl)
 [![Coverage Status](https://coveralls.io/repos/github/haukex/Config-Perl/badge.svg)](https://coveralls.io/github/haukex/Config-Perl)
 [![Kwalitee Score](https://cpants.cpanauthors.org/dist/Config-Perl.svg)](https://cpants.cpanauthors.org/dist/Config-Perl)
-[![CPAN Testers](https://badges.zero-g.net/cpantesters/Config-Perl.svg)](http://matrix.cpantesters.org/?dist=Config-Perl)
+[![CPAN Testers](https://haukex.github.io/my-badges/Config-Perl.svg)](http://matrix.cpantesters.org/?dist=Config-Perl)
 
 Installation
 ------------
